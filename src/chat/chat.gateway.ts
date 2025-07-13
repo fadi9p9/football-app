@@ -8,7 +8,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
-
+import { NotificationService } from 'src/notification/notification.service';
+import { UserService } from '../user/user.service';
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection {
   @WebSocketServer()
@@ -16,7 +17,10 @@ export class ChatGateway implements OnGatewayConnection {
 
  private onlineUsers = new Map<number, string>();
 
-  constructor(private readonly chatService: ChatService) {}
+  constructor(private readonly chatService: ChatService,
+    private readonly notificationService: NotificationService,
+    private readonly userService: UserService
+  ) {}
 
  handleConnection(socket: Socket) {
   const userId = Number(socket.handshake.query.userId);
@@ -35,7 +39,12 @@ async handleSendMessage(
     data.receiverId,
     data.content,
   );
+const sender = await this.userService.findOne(data.senderId);
 
+      await this.notificationService.createNotification(
+        data.receiverId,
+        `رسالة جديدة من ${sender.name}: ${data.content}`
+      );
   const receiverSocketId = this.onlineUsers.get(data.receiverId);
   if (receiverSocketId) {
     this.server.to(receiverSocketId).emit('receive_message', message);
@@ -44,6 +53,7 @@ async handleSendMessage(
       message: data.content,
        time: message.createdAt,
     });
+    
   }
   return message;
 }
