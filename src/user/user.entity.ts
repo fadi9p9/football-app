@@ -2,6 +2,7 @@ import { Message } from 'src/chat/message.entity';
 import { TeamPost } from 'src/team-post/team-post.entity';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Notification } from '../notification/entities/notification.entity';
+import { on } from 'events';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -30,11 +31,7 @@ export class User {
   @Column({ nullable: true })
   skill: string;
 
-  @Column({ default: false })
-  isDarkMode: boolean;
-
-  @Column({ type: 'enum', enum: ['en', 'ar'], default: 'en' })
-  language: 'en' | 'ar';
+ 
 
 @Column({ nullable: true, type: 'varchar' })
 otpCode: string | null;
@@ -45,8 +42,8 @@ otpExpiry: Date | null;
 @Column({ type: 'varchar', nullable: true })
 currentToken: string | null;
 
-@OneToMany(() => TeamPost, (post) => post.user)
-posts: TeamPost[];
+@OneToMany(() => TeamPost, post => post.user,{onDelete:'CASCADE'})
+  posts: TeamPost[];
 
   @CreateDateColumn()
   createdAt: Date;
@@ -57,12 +54,12 @@ posts: TeamPost[];
     @Column({ default: false })
 isVerified: boolean;
 
-   @OneToMany(() => Notification, (notif) => notif.user)
+   @OneToMany(() => Notification, (notif) => notif.user,{onDelete:'CASCADE'})
 notifications: Notification[];
 
-  @OneToMany(() => Message, (message) => message.sender)
+  @OneToMany(() => Message, (message) => message.sender,{onDelete:'CASCADE'})
 sentMessages: Message[];
 
-@OneToMany(() => Message, (message) => message.receiver)
+@OneToMany(() => Message, (message) => message.receiver,{onDelete:'CASCADE'})
 receivedMessages: Message[];
 }

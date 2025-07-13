@@ -6,6 +6,8 @@ import {
   Patch,
   UseGuards,
   Request,
+  Body,
+  Post,
 } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth/jwt-auth.guard';
@@ -29,4 +31,9 @@ export class NotificationController {
   markAllAsRead(@Request() req) {
     return this.notifService.markAllAsRead(req.user.id);
   }
+
+  @Post()
+createNotification(@Body() body: { content: string }, @Request() req) {
+  return this.notifService.createNotification(req.user.id, body.content);
+}
 }

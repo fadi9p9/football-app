@@ -19,8 +19,8 @@ export class Notification {
   @Column({ default: false })
   isRead: boolean;
 
-  @ManyToOne(() => User, (user) => user.notifications, { eager: true, onDelete: 'CASCADE' })
-user: User;
+  @ManyToOne(() => User, user => user.notifications)
+  user: User;
 
   @CreateDateColumn()
   createdAt: Date;

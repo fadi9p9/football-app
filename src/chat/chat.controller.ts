@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Request, UseGuards } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -21,4 +21,12 @@ async getConversation(@Param('user1') u1: number, @Param('user2') u2: number) {
   return this.chatService.getConversation(u1, u2);
 }
 
+
+  @Patch('read/:senderId')
+async markAsRead(
+  @Param('senderId') senderId: number,
+  @Request() req
+) {
+  return this.chatService.markMessagesRead(senderId, req.user.userId);
+}
 }

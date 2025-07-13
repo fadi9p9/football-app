@@ -5,7 +5,7 @@ import { TeamPostService } from './team-post.service';
 import { TeamPostController } from './team-post.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TeamPost])], 
+  imports: [TypeOrmModule.forFeature([TeamPost])],
   controllers: [TeamPostController],
   providers: [TeamPostService],
 })

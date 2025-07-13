@@ -19,7 +19,7 @@ export class TeamPost {
   location: string;
 
   @Column()
-  date: string; // أو type: 'date' حسب الحاجة
+  date: string;
 
   @Column()
   time: string;
@@ -31,15 +31,15 @@ export class TeamPost {
   missingPlayers: number;
 
   @Column({ nullable: true })
-  description: string;
+  description?: string;
+
+  @Column('varchar', { length: 500, nullable: true })
+  image: string | null;
 
   @Column({ nullable: true })
-  image: string;
+  phone?: string;
 
-  @Column({ nullable: true })
-  phone: string;
-
-  @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, user => user.posts)
   user: User;
 
   @CreateDateColumn()

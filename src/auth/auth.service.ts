@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
@@ -18,32 +18,47 @@ export class AuthService {
      private readonly jwtService: JwtService, 
   ) {}
 
- async login(email: string, password: string) {
-  const user = await this.userRepo.findOne({ where: { email } });
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    throw new UnauthorizedException('Invalid credentials');
-  }
+async login(user: User) {
+  const payload = {
+    sub: user.id,
+    username: user.name,
+    iat: Math.floor(Date.now() / 1000)
+  };
 
-  if (!user.isVerified) {
-    throw new BadRequestException('Please verify your account with OTP');
-  }
+  const token = this.jwtService.sign(payload, {
+    algorithm: 'HS256',
+    secret: 'uLDovjBfWtwGoYJ0XT/mGDC0u7BSJnsgZ1JJJxTQE84='
+  });
 
-  const payload = { id: user.id };
-  const token = this.jwtService.sign(payload);
-
-  user.currentToken = token;
-  await this.userRepo.save(user);
-
+  // إرجاع التوكن مع بيانات المستخدم الكاملة (باستثناء الحساسة مثل كلمة المرور)
   return {
-    message: 'Login successful',
-    token,
-    user,
+    access_token: token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
+      skill: user.skill,
+      isVerified: user.isVerified,
+      createdAt: user.createdAt
+      // يمكنك إضافة أو إزالة الحقول حسب الحاجة
+    }
   };
 }
 
 
 
+async validateUser(email: string, password: string): Promise<User> {
+  const user = await this.userRepo.findOne({ where: { email } });
+  if (!user) throw new UnauthorizedException('Invalid credentials');
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) throw new UnauthorizedException('Invalid credentials');
+
+  return user;
+}
 
   async signup(createUserDto: CreateUserDto) {
     const { email, password } = createUserDto;
@@ -99,6 +114,14 @@ export class AuthService {
     return { user: userData, access_token: token };
   }
 
+  async logout(userId: number) {
+  try {
+    await this.userRepo.update(userId, { currentToken: null });
+    return { message: 'Logged out successfully' };
+  } catch (error) {
+    throw new InternalServerErrorException('Failed to logout');
+  }
+}
 
   private generateOtp(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();

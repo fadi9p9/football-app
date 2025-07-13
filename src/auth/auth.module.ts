@@ -15,9 +15,9 @@ import { Module } from '@nestjs/common';
     TypeOrmModule.forFeature([User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: 'YOUR_JWT_SECRET', // يجب حفظه في env
-      signOptions: { expiresIn: '1h' },
-    }),
+  secret: process.env.JWT_SECRET,
+  signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+})
   ],
   providers: [AuthService, MailService, JwtStrategy],
   controllers: [AuthController],

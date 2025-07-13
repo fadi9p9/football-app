@@ -29,16 +29,32 @@ if (!sender || !receiver) {
     return await this.msgRepo.save(message);
   }
 
-  async getConversation(userId1: number, userId2: number) {
-  return this.msgRepo.find({
-    where: [
-      { sender: { id: userId1 }, receiver: { id: userId2 } },
-      { sender: { id: userId2 }, receiver: { id: userId1 } },
-    ],
-    order: { createdAt: 'ASC' },
-  });
-}
-
+ async getConversation(userId1: number, userId2: number) {
+   const messages = await this.msgRepo.find({
+     where: [
+       { sender: { id: userId1 }, receiver: { id: userId2 } },
+       { sender: { id: userId2 }, receiver: { id: userId1 } },
+     ],
+     order: { createdAt: 'ASC' },
+     relations: ['sender', 'receiver']
+   });
+ 
+   return messages.map(msg => ({
+     id: msg.id,
+     content: msg.content,
+     createdAt: msg.createdAt,
+     sender: this.filterUserFields(msg.sender),
+     receiver: this.filterUserFields(msg.receiver)
+   }));
+ }
+ 
+ private filterUserFields(user: User) {
+   return {
+     id: user.id,
+     name: user.name,
+     avatar: user.avatar,
+   };
+ }
 
 
 async getContacts(userId: number) {
